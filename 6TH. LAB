@@ -1,0 +1,57 @@
+import random
+from collections import defaultdict
+
+class BigramModel:
+    def __init__(self):
+        self.bigrams = defaultdict(lambda: defaultdict(int))
+        self.start_words = []
+
+    def train(self, text):
+        words = text.split()
+
+        self.start_words.append(words[0])
+
+        for i in range(len(words) - 1):
+            current_word = words[i]
+            next_word = words[i + 1]
+            self.bigrams[current_word][next_word] += 1
+
+    def generate_text(self, length=10):
+        current_word = random.choice(self.start_words)
+        text = [current_word]
+
+        for _ in range(length - 1):
+            if current_word not in self.bigrams:
+                break
+
+            next_word = self._choose_next_word(current_word)
+            text.append(next_word)
+            current_word = next_word
+
+        return ' '.join(text)
+
+    def _choose_next_word(self, current_word):
+        next_words = self.bigrams[current_word]
+        total_count = sum(next_words.values())
+
+        rand_val = random.uniform(0, total_count)
+        cumulative = 0
+        for word, count in next_words.items():
+            cumulative += count
+            if rand_val <= cumulative:
+                return word
+
+        return None
+
+if __name__ == "__main__":
+    text = (
+        "I love to eat pizza. I love to drink coffee. I love to play games. "
+        "I love to read books. I love to watch movies. I love to travel. "
+        "I love to learn new things. I love to write code."
+    )
+
+    bigram_model = BigramModel()
+    bigram_model.train(text)
+
+    generated_text = bigram_model.generate_text(length=15)
+    print("Generated Text:", generated_text)
